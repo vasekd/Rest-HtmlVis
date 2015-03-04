@@ -128,6 +128,7 @@ sub new {
 
 sub loadVisObject {
 	my ($self, $key, $class) = @_;
+
 	if (_try_load($class)){
 		my $vis = $class->new;
 		my $order = $vis->getOrder;
@@ -188,6 +189,8 @@ sub html {
 ### Try load library
 sub _try_load {
 	my $mod = shift;
+
+	return 1 if ($mod->can("html")); # because of local class in psgi
 	eval("use $mod; 1") ? return 1 : return 0;
 }
 
