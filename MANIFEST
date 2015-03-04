@@ -1,0 +1,13 @@
+Changes
+lib/Rest/HtmlVis.pm
+lib/Rest/HtmlVis/Content.pm
+lib/Rest/HtmlVis/Form.pm
+lib/Rest/HtmlVis/Key.pm
+lib/Rest/HtmlVis/Links.pm
+Makefile.PL
+MANIFEST			This list of files
+README
+t/00-load.t
+t/manifest.t
+t/pod-coverage.t
+t/pod.t

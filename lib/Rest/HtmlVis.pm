@@ -1,0 +1,226 @@
+package Rest::HtmlVis;
+
+use 5.006;
+use strict;
+use warnings FATAL => 'all';
+
+=head1 NAME
+
+Rest::HtmlVis - Rest API visualizer in HTML
+
+=head1 VERSION
+
+Version 0.01
+
+=cut
+
+our $VERSION = '0.01';
+
+
+=head1 SYNOPSIS
+
+Transform perl hash to html.
+Each key in perl hash is transormed to the piece of html, js and css those are include in main html.
+
+Example:
+
+	use Rest::HtmlVis;
+
+	my $htmlvis = Rest::HtmlVis->new({
+		events => Rest::HtmlVis::Events
+	});
+
+	$htmlvis->html({
+
+		events => [
+		],
+
+		links => {
+			rel => 'root',
+			href => /,
+			name => Root resource
+		}
+
+		form => {
+			GET => {
+				from => {
+					type => 'time',
+					default => time(),
+				}
+			},
+			POST => {
+				DATA => {
+					type => "text"
+					temperature => 25
+				},
+
+			}
+		}
+	});
+
+
+HtmlVis has default blocks that are show everytime:
+
+=over 4
+
+=item * base
+
+See L<Rest::HtmlVis::Base>.
+
+=item * content
+
+See L<Rest::HtmlVis::Content>.
+
+=back
+
+These blocks can be rewrite when the base or content key is set in constructor params.
+
+=head1 SUBROUTINES/METHODS
+
+=head2 new( params )
+
+Create new htmlvis object. You have to specify params for keys that should be transformed.
+
+=head3 params
+
+Define keys in input hash and library that manage this key.
+
+Specific param is 'param.local' that defines if third party javascript and css is download from internet or from local repository.
+If you want to use local repository it is important to serve static content from static directory.
+Example:
+
+	mount '/static' => Plack::App::File->new(root => "/path_to_static_directory/static/")->to_app;
+
+
+Example:
+
+	{ events => Rest::HtmlVis::Events }   
+
+=cut
+
+my $based = {
+	base => 'Rest::HtmlVis::Base',
+	content => 'Rest::HtmlVis::Content',
+};
+
+sub new {
+	my ($class, $params) = @_;
+
+	my $htmlVis;
+
+	my $self = bless {}, $class;
+
+	### Set local
+	$self->{local} = delete $params->{'param.local'} if exists $params->{'param.local'};
+
+	### Set params
+	foreach my $key (keys %$params) {
+		$based->{$key} = $params->{$key};
+	}
+
+	### Add htmlvis
+	foreach my $key (sort keys %{$based}){
+		$self->loadVisObject($key, $based->{$key});
+	}
+
+	return $self;
+}
+
+sub loadVisObject {
+	my ($self, $key, $class) = @_;
+	if (_try_load($class)){
+		my $vis = $class->new;
+		my $order = $vis->getOrder;
+		push(@{$self->{htmlVis}{$order}}, {
+			key => $key,
+			object => $vis
+		}) if $vis->isa('Rest::HtmlVis::Key');
+	}
+}
+
+=head2 html( hash_struct )
+
+Convert input hash struct to html. Return html string.
+
+=cut
+
+sub html {
+	my ($self, $struct, $env) = @_;
+
+	return unless ref $struct eq 'HASH';
+
+	### manage keys
+	my $head_parts = '';
+	my $onload_parts = '';
+	my $html_parts = '';
+
+	my $rowBlocks = 0; # count number of blocks in row
+
+	### Add blocks
+	foreach my $order (sort keys %{$self->{htmlVis}}) {
+		foreach my $obj (@{$self->{htmlVis}{$order}}) {
+
+			my $vis = $obj->{object};
+			next unless $vis->setStruct($obj->{key}, $struct, $env);
+
+			my $head = $vis->head($self->{local});
+			$head_parts .= $head if $head;
+
+			my $onload = $vis->onload();
+			$onload_parts .= $onload if $onload;
+
+			my $html = $vis->html();
+			if ($html){
+				$rowBlocks += $vis->blocks();
+				my $newRow = ($vis->newRow() or $rowBlocks > 12) ? 1 : 0;
+
+				$html_parts .= '<div class="row">' if $newRow;
+				$html_parts .= $html;
+				$html_parts .= '</div>' if $newRow;
+				$rowBlocks = 0 if $newRow;
+			}
+		}
+	}
+
+	return "<!DOCTYPE html>\n<html>\n<head>\n$head_parts\n</head>\n<body onload=$onload_parts>\n$html_parts\n</body>\n</html>";
+}
+
+### Try load library
+sub _try_load {
+	my $mod = shift;
+	eval("use $mod; 1") ? return 1 : return 0;
+}
+
+=head1 TUTORIAL
+
+L<http://psgirestapi.dovrtel.cz/>
+
+=head1 AUTHOR
+
+Vaclav Dovrtel, C<< <vaclav.dovrtel at gmail.com> >>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to github repository.
+
+=head1 ACKNOWLEDGEMENTS
+
+Inspired by L<https://github.com/towhans/hochschober>
+
+=head1 REPOSITORY
+
+L<https://github.com/vasekd/Rest-HtmlVis>
+
+=head1 LICENSE AND COPYRIGHT
+
+Copyright 2015 Vaclav Dovrtel.
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See L<http://dev.perl.org/licenses/> for more information.
+
+=cut
+
+1; # End of Rest::HtmlVis
