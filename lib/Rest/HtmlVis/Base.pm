@@ -33,30 +33,8 @@ sub blocks {
 	return 0;
 }
 
-sub head {
-	my ($self, $local) = @_;
-
-	### !!! if edit main.css edit also inline css in else branch
-
-	if ($local){
-		return '
-	<link href="/static/google-code-prettify/prettify.css" rel="stylesheet">
-	<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-	<link href="/static/main.css" rel="stylesheet">
-
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-	<script src="/static/jquery.min.js"></script>
-	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-	<script src="/static/google-code-prettify/prettify.js"></script>
-	<script src="/static/google-code-prettify/lang-yaml.js"></script>
-		';
-	}else{
-		return '
-	<link href="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=yaml" rel="stylesheet">
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
-	<style>
-		body {
+my $style = 
+'		body {
 		  padding: 0px;
 		  margin: 0px;
 		  font: 14px/1 Helvetica, Verdana, sans-serif;
@@ -65,6 +43,10 @@ sub head {
 		/* Bootstrap */
 		.row {
 		  margin: 10px 0px 0px 0px;
+		}
+
+		.form-control {
+			margin-bottom: 4px;
 		}
 
 		/* Header styles */
@@ -183,6 +165,34 @@ sub head {
 		a {
 		  color: #23527c;
 		}
+';
+
+sub head {
+	my ($self, $local) = @_;
+
+	### !!! if edit main.css edit also inline css in else branch
+
+	if ($local){
+		return '
+	<link href="/static/google-code-prettify/prettify.css" rel="stylesheet">
+	<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<style>
+	'.$style.'
+	</style>	
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<script src="/static/jquery.min.js"></script>
+	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/static/google-code-prettify/prettify.js"></script>
+	<script src="/static/google-code-prettify/lang-yaml.js"></script>
+		';
+	}else{
+		return '
+	<link href="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=yaml" rel="stylesheet">
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+	<style>
+	'.$style.'
 	</style>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -198,7 +208,7 @@ sub html {
 
 	my $project = $self->getEnv->{'restapi.class'};
 	my $method = $self->getEnv->{REQUEST_METHOD};
-	my $path = $self->getEnv->{REQUEST_URI};
+	my $path = $self->getEnv->{SCRIPT_NAME};
 
 "
 	<div class=\"header\">

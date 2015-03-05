@@ -9,9 +9,9 @@ plan tests => 5;
 BEGIN {
     use_ok( 'Rest::HtmlVis' ) || print "Bail out!\n";
     use_ok( 'Rest::HtmlVis::Key' ) || print "Bail out!\n";
-    use_ok( 'Rest::HtmlVis::Links' ) || print "Bail out!\n";
-    use_ok( 'Rest::HtmlVis::Form' ) || print "Bail out!\n";
+    use_ok( 'Rest::HtmlVis::Base' ) || print "Bail out!\n";
     use_ok( 'Rest::HtmlVis::Content' ) || print "Bail out!\n";
+    use_ok( 'Rest::HtmlVis::Events' ) || print "Bail out!\n";
 }
 
 diag( "Testing Rest::HtmlVis $Rest::HtmlVis::VERSION, Perl $], $^X" );

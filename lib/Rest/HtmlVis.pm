@@ -63,11 +63,11 @@ HtmlVis has default blocks that are show everytime:
 
 =over 4
 
-=item * base
+=item * default.base
 
 See L<Rest::HtmlVis::Base>.
 
-=item * content
+=item * default.content
 
 See L<Rest::HtmlVis::Content>.
 
@@ -85,22 +85,21 @@ Create new htmlvis object. You have to specify params for keys that should be tr
 
 Define keys in input hash and library that manage this key.
 
+Example:
+
+	{ events => Rest::HtmlVis::Events }   
+
 Specific param is 'param.local' that defines if third party javascript and css is download from internet or from local repository.
 If you want to use local repository it is important to serve static content from static directory.
 Example:
 
 	mount '/static' => Plack::App::File->new(root => "/path_to_static_directory/static/")->to_app;
 
-
-Example:
-
-	{ events => Rest::HtmlVis::Events }   
-
 =cut
 
 my $based = {
-	base => 'Rest::HtmlVis::Base',
-	content => 'Rest::HtmlVis::Content',
+	'default.base' => 'Rest::HtmlVis::Base',
+	'default.content' => 'Rest::HtmlVis::Content',
 };
 
 sub new {
@@ -183,13 +182,14 @@ sub html {
 		}
 	}
 
-	return "<!DOCTYPE html>\n<html>\n<head>\n$head_parts\n</head>\n<body onload=$onload_parts>\n$html_parts\n</body>\n</html>";
+	return "<!DOCTYPE html>\n<html>\n<head>\n$head_parts\n</head>\n<body onload=\"$onload_parts\">\n$html_parts\n</body>\n</html>";
 }
 
 ### Try load library
 sub _try_load {
 	my $mod = shift;
 
+	return 0 unless $mod;
 	return 1 if ($mod->can("html")); # because of local class in psgi
 	eval("use $mod; 1") ? return 1 : return 0;
 }

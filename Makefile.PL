@@ -20,6 +20,7 @@ WriteMakefile(
     PREREQ_PM => {
         'JSON::XS' => 0,
         'YAML::Syck' => 0,
+        'Plack::Request' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'Rest-HtmlVis-*' },

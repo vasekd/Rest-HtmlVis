@@ -52,8 +52,8 @@ TODO: {
 
   module_boilerplate_ok('lib/Rest/HtmlVis.pm');
   module_boilerplate_ok('lib/Rest/HtmlVis/Key.pm');
-  module_boilerplate_ok('lib/Rest/HtmlVis/Links.pm');
-  module_boilerplate_ok('lib/Rest/HtmlVis/Form.pm');
+  module_boilerplate_ok('lib/Rest/HtmlVis/Base.pm');
+  module_boilerplate_ok('lib/Rest/HtmlVis/Events.pm');
   module_boilerplate_ok('lib/Rest/HtmlVis/Content.pm');
 
 

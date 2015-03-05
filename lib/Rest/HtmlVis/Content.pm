@@ -6,11 +6,12 @@ use warnings FATAL => 'all';
 
 use parent qw( Rest::HtmlVis::Key );
 
+use Plack::Request;
 use YAML::Syck;
 
 =head1 NAME
 
-Rest::HtmlVis::Content - The great new Rest::HtmlVis::Content!
+Rest::HtmlVis::Content - Return base block for keys links and form.
 
 =head1 VERSION
 
@@ -31,6 +32,42 @@ Perhaps a little code snippet.
 
     my $foo = Rest::HtmlVis::Content->new();
     ...
+
+=head1 KEYS
+
+=head2 links
+
+Convert default strcuture of links. Each link should consists of:
+
+=over 4
+
+=item * href
+
+URL of target.Can be absolute or relative.
+
+=item * name
+
+Name of the link.
+
+=item * id
+
+Identifier of the link
+
+=back
+
+Example:
+
+	links => [
+		{
+			href => '/api/test',
+			name => 'Test resource',
+			id => 'api.test'
+		}
+	]
+
+=head2 form
+
+Define elements of formular for html.
 
 =cut
 
@@ -75,6 +112,7 @@ sub html {
 		foreach my $link (@{$struct->{links}}) {
 			$links .= '<li><a href="'.$link->{href}.'">'.$link->{href}.'</a><span> - '.$link->{name}.'</span></li>';
 		}
+		delete $struct->{links};
 	}
 
 	### Content
@@ -90,8 +128,15 @@ sub html {
 
 	### Form
 	my $form = {};
+#	if (exists $struct->{form} && ref $struct->{form} eq 'HASH'){
 	if (exists $struct->{form} && ref $struct->{form} eq 'HASH'){
-		$form = _formToHtml($struct);
+		$form = _formToHtml($struct->{form});
+		delete $struct->{form};
+	}elsif( exists $self->getEnv()->{'restapi.class'} && $self->getEnv()->{'restapi.class'}->can('GET_FORM')){
+		my $req = Plack::Request->new($self->getEnv());
+		my $par = $req->parameters;
+		$par->add('content', $content);
+		$form = _formToHtml($self->getEnv()->{'restapi.class'}->GET_FORM($par));
 	}
 
 "
@@ -123,17 +168,17 @@ $content
 					</form>
 				</div>
 				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"post\">
-					<form class=\"method-form\" method=\"POST\" action=\"http://localhost:5000/\">
+					<form class=\"method-form\" method=\"POST\">
 ".($form->{POST}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>
-				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"put\" action=\"/\">
-					<form class=\"method-form\" method=\"PUT\">
+				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"put\">
+					<form class=\"method-form\" onSubmit=\""._getAjaxCall($self, 'PUT')."\">
 ".($form->{PUT}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>
 				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"delete\">
-					<form class=\"method-form\" method=\"DELETE\">
+					<form class=\"method-form\" onSubmit=\""._getAjaxCall($self, 'DELETE')."\">
 ".($form->{DELETE}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>
@@ -143,24 +188,82 @@ $content
 "
 }
 
-_formToHtml {
+sub _getAjaxCall {
+	my ($self, $methodType) = @_;
+	"\$.ajax({
+		type: '$methodType',
+		url: '".$self->getEnv()->{REQUEST_URI}."',
+		success: function(data) {
+			alert('Success'); 
+			var newDoc = document.open('text/html', 'replace');
+			newDoc.write(data);
+			newDoc.close();
+		},
+		error: function(data) {
+			alert(data.responseText);
+		},
+		data: \$(this).serialize()
+	}); return false;"
+}
+
+
+my $defaultForm = {
+	GET => 	"<button type=\"submit\" class=\"btn btn-default\">Get</button>",
+	
+	POST => "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Post as</label> 
+	<select name=\"enctype\" class=\"form-control\">
+	  <option>application/json</option>
+	  <option selected=\"selected\">text/yaml</option>
+	  <option>text/plain</option>
+	</select>
+	<button type=\"submit\" class=\"btn btn-default\">Post</button>",
+
+	PUT =>  "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Put as</label> 
+	<select name=\"enctype\" class=\"form-control\">
+	  <option>application/json</option>
+	  <option selected=\"selected\">text/yaml</option>
+	  <option>text/plain</option>
+	</select>
+	<button type=\"submit\" class=\"btn btn-default\">Put</button>",
+	
+	DELETE => "<button type=\"submit\" class=\"btn btn-default\">Delete</button>",
+};
+
+sub _formToHtml {
 	my ($struct) = @_;
 
-=old
+	my $form = {};
+	foreach my $method (keys %{$struct}) {
+		if (exists $struct->{$method}{params} && ref $struct->{$method}{params} eq 'ARRAY'){
+			my $html = '';
+			foreach my $param (@{$struct->{$method}{params}}) {
+				my $type = $param->{type};
+				my $name = $param->{name};
 
-	"<button type=\"submit\" class=\"btn btn-default\">Get</button>"
+				next unless $name;
 
-	"<textarea class=\"form-control\" id=\"exampleInputEmail1\" name=\"DATA\" placeholder=\"Text\" cols=\"2\" rows=\"10\"></textarea>
-	<button type=\"submit\" class=\"btn btn-default\">Post</button>"
+				if ($type eq 'text'){
+					my $default = ($param->{default}||'');
+					$html .= '<input type="text" name="'.$name.'" class="form-control" placeholder="'.$default.'">';
+				}elsif ($type eq 'textarea'){
+					my $rows = ($param->{rows}||20);
+					my $cols = ($param->{cols}||3);
+					my $default = ($param->{default}||'');
+					$html .= '<textarea class="form-control" name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'">'.$default.'</textarea>';
+				}elsif ($type eq 'checkbox'){
+				}elsif ($type eq 'radio'){
+				}
+			}
+			$form->{$method} .= $html;
+		}elsif(exists $struct->{$method}{default}){
+			my $html = '';
+			$html .= '<textarea class="form-control" name="DATA" rows="20" cols="3">'.$struct->{$method}{default}.'</textarea>';
+			$form->{$method} .= $html;
+		}
+		$form->{$method} .= $defaultForm->{$method};
+	}
 
-	"<textarea class=\"form-control\" id=\"exampleInputEmail1\" name=\"DATA\" placeholder=\"Text\" cols=\"2\" rows=\"10\"></textarea>
-	<button type=\"submit\" class=\"btn btn-default\">Put</button>"
-
-	"<button type=\"submit\" class=\"btn btn-default\">Delete</button>"
-
-=cut
-
-	return {}
+	return $form;
 }
 
 =head1 AUTHOR
