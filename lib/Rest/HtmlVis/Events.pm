@@ -81,3 +81,6 @@ sub html {
 };
 
 1;
+=head1 AUTHOR
+
+Václav Dovrtěl E<lt>vaclav.dovrtel@gmail.comE<gt>

@@ -268,7 +268,7 @@ sub _formToHtml {
 
 =head1 AUTHOR
 
-Vaclav Dovrtel, C<< <vaclav.dovrtel at gmail.com> >>
+Václav Dovrtěl E<lt>vaclav.dovrtel@gmail.comE<gt>
 
 =head1 BUGS
 

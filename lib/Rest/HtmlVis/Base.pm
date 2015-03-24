@@ -206,9 +206,9 @@ sub head {
 sub html {
 	my ($self) = @_;
 
-	my $project = $self->getEnv->{'restapi.class'};
-	my $method = $self->getEnv->{REQUEST_METHOD};
-	my $path = $self->getEnv->{SCRIPT_NAME};
+	my $project = $self->getEnv->{'REST.class'}||$self->getEnv->{'PATH_INFO'}||'';
+	my $method = $self->getEnv->{REQUEST_METHOD}||'';
+	my $path = $self->getEnv->{SCRIPT_NAME}||'';
 
 "
 	<div class=\"header\">
@@ -228,7 +228,7 @@ sub html {
 
 =head1 AUTHOR
 
-Vaclav Dovrtel, C<< <vaclav.dovrtel at gmail.com> >>
+Václav Dovrtěl E<lt>vaclav.dovrtel@gmail.comE<gt>
 
 =head1 BUGS
 

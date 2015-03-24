@@ -1,21 +1,107 @@
 package Rest::HtmlVis;
 
-use 5.006;
+use 5.008_005;
 use strict;
 use warnings FATAL => 'all';
+
+our $VERSION = '0.01'; # Set automatically by milla
+
+my $based = {
+	'default.base' => 'Rest::HtmlVis::Base',
+	'default.content' => 'Rest::HtmlVis::Content',
+};
+
+sub new {
+	my ($class, $params) = @_;
+
+	my $htmlVis;
+
+	my $self = bless {}, $class;
+
+	### Set local
+	$self->{local} = delete $params->{'param.local'} if exists $params->{'param.local'};
+
+	### Set params
+	foreach my $key (keys %$params) {
+		$based->{$key} = $params->{$key};
+	}
+
+	### Add htmlvis
+	foreach my $key (sort keys %{$based}){
+		$self->loadVisObject($key, $based->{$key});
+	}
+
+	return $self;
+}
+
+sub loadVisObject {
+	my ($self, $key, $class) = @_;
+
+	if (_try_load($class)){
+		my $vis = $class->new;
+		my $order = $vis->getOrder;
+		push(@{$self->{htmlVis}{$order}}, {
+			key => $key,
+			object => $vis
+		}) if $vis->isa('Rest::HtmlVis::Key');
+	}
+}
+
+sub html {
+	my ($self, $struct, $env) = @_;
+
+	return unless ref $struct eq 'HASH';
+
+	### manage keys
+	my $head_parts = '';
+	my $onload_parts = '';
+	my $html_parts = '';
+
+	my $rowBlocks = 0; # count number of blocks in row
+
+	### Add blocks
+	foreach my $order (sort keys %{$self->{htmlVis}}) {
+		foreach my $obj (@{$self->{htmlVis}{$order}}) {
+
+			my $vis = $obj->{object};
+			next unless $vis->setStruct($obj->{key}, $struct, $env);
+
+			my $head = $vis->head($self->{local});
+			$head_parts .= $head if $head;
+
+			my $onload = $vis->onload();
+			$onload_parts .= $onload if $onload;
+
+			my $html = $vis->html();
+			if ($html){
+				$rowBlocks += $vis->blocks();
+				my $newRow = ($vis->newRow() or $rowBlocks > 12) ? 1 : 0;
+
+				$html_parts .= '<div class="row">' if $newRow;
+				$html_parts .= $html;
+				$html_parts .= '</div>' if $newRow;
+				$rowBlocks = 0 if $newRow;
+			}
+		}
+	}
+
+	return "<!DOCTYPE html>\n<html>\n<head>\n$head_parts\n</head>\n<body onload=\"$onload_parts\">\n$html_parts\n</body>\n</html>";
+}
+
+### Try load library
+sub _try_load {
+	my $mod = shift;
+
+	return 0 unless $mod;
+	return 1 if ($mod->can("html")); # because of local class in psgi
+	eval("use $mod; 1") ? return 1 : return 0;
+}
+
+1;
 
 =head1 NAME
 
 Rest::HtmlVis - Rest API visualizer in HTML
-
-=head1 VERSION
-
-Version 0.01
-
-=cut
-
-our $VERSION = '0.01';
-
 
 =head1 SYNOPSIS
 
@@ -97,102 +183,11 @@ Example:
 
 =cut
 
-my $based = {
-	'default.base' => 'Rest::HtmlVis::Base',
-	'default.content' => 'Rest::HtmlVis::Content',
-};
-
-sub new {
-	my ($class, $params) = @_;
-
-	my $htmlVis;
-
-	my $self = bless {}, $class;
-
-	### Set local
-	$self->{local} = delete $params->{'param.local'} if exists $params->{'param.local'};
-
-	### Set params
-	foreach my $key (keys %$params) {
-		$based->{$key} = $params->{$key};
-	}
-
-	### Add htmlvis
-	foreach my $key (sort keys %{$based}){
-		$self->loadVisObject($key, $based->{$key});
-	}
-
-	return $self;
-}
-
-sub loadVisObject {
-	my ($self, $key, $class) = @_;
-
-	if (_try_load($class)){
-		my $vis = $class->new;
-		my $order = $vis->getOrder;
-		push(@{$self->{htmlVis}{$order}}, {
-			key => $key,
-			object => $vis
-		}) if $vis->isa('Rest::HtmlVis::Key');
-	}
-}
-
 =head2 html( hash_struct )
 
 Convert input hash struct to html. Return html string.
 
 =cut
-
-sub html {
-	my ($self, $struct, $env) = @_;
-
-	return unless ref $struct eq 'HASH';
-
-	### manage keys
-	my $head_parts = '';
-	my $onload_parts = '';
-	my $html_parts = '';
-
-	my $rowBlocks = 0; # count number of blocks in row
-
-	### Add blocks
-	foreach my $order (sort keys %{$self->{htmlVis}}) {
-		foreach my $obj (@{$self->{htmlVis}{$order}}) {
-
-			my $vis = $obj->{object};
-			next unless $vis->setStruct($obj->{key}, $struct, $env);
-
-			my $head = $vis->head($self->{local});
-			$head_parts .= $head if $head;
-
-			my $onload = $vis->onload();
-			$onload_parts .= $onload if $onload;
-
-			my $html = $vis->html();
-			if ($html){
-				$rowBlocks += $vis->blocks();
-				my $newRow = ($vis->newRow() or $rowBlocks > 12) ? 1 : 0;
-
-				$html_parts .= '<div class="row">' if $newRow;
-				$html_parts .= $html;
-				$html_parts .= '</div>' if $newRow;
-				$rowBlocks = 0 if $newRow;
-			}
-		}
-	}
-
-	return "<!DOCTYPE html>\n<html>\n<head>\n$head_parts\n</head>\n<body onload=\"$onload_parts\">\n$html_parts\n</body>\n</html>";
-}
-
-### Try load library
-sub _try_load {
-	my $mod = shift;
-
-	return 0 unless $mod;
-	return 1 if ($mod->can("html")); # because of local class in psgi
-	eval("use $mod; 1") ? return 1 : return 0;
-}
 
 =head1 TUTORIAL
 
@@ -200,7 +195,7 @@ L<http://psgirestapi.dovrtel.cz/>
 
 =head1 AUTHOR
 
-Vaclav Dovrtel, C<< <vaclav.dovrtel at gmail.com> >>
+Václav Dovrtěl E<lt>vaclav.dovrtel@gmail.comE<gt>
 
 =head1 BUGS
 
@@ -210,20 +205,13 @@ Please report any bugs or feature requests to github repository.
 
 Inspired by L<https://github.com/towhans/hochschober>
 
-=head1 REPOSITORY
+=head1 COPYRIGHT
 
-L<https://github.com/vasekd/Rest-HtmlVis>
+Copyright 2015- Václav Dovrtěl
 
-=head1 LICENSE AND COPYRIGHT
+=head1 LICENSE
 
-Copyright 2015 Vaclav Dovrtel.
-
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation; or the Artistic License.
-
-See L<http://dev.perl.org/licenses/> for more information.
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =cut
-
-1; # End of Rest::HtmlVis
