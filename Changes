@@ -1,5 +1,10 @@
 Revision history for Rest-HtmlVis
 
+{{$NEXT}}
+
+0.02  2015-03-24 02:29:48 CET
+	Switch to milla
+
 0.01    4. Mar 2015
         First version.
 
