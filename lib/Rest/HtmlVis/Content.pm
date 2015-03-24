@@ -45,13 +45,13 @@ Convert default strcuture of links. Each link should consists of:
 
 URL of target.Can be absolute or relative.
 
-=item * name
+=item * title
 
 Name of the link.
 
-=item * id
+=item * rel
 
-Identifier of the link
+Identifier of the link (type of the link)
 
 =back
 
@@ -60,8 +60,8 @@ Example:
 	links => [
 		{
 			href => '/api/test',
-			name => 'Test resource',
-			id => 'api.test'
+			title => 'Test resource',
+			rel => 'api.test'
 		}
 	]
 
@@ -110,7 +110,7 @@ sub html {
 	my $links = '';
 	if (exists $struct->{links} && ref $struct->{links} eq 'ARRAY'){
 		foreach my $link (@{$struct->{links}}) {
-			$links .= '<li><a href="'.$link->{href}.'">'.$link->{href}.'</a><span> - '.$link->{name}.'</span></li>';
+			$links .= '<li><a href="'.$link->{href}.'" rel="'.$link->{rel}.'">'.$link->{href}.'</a><span> - '.$link->{title}.'</span></li>';
 		}
 		delete $struct->{links};
 	}
@@ -132,11 +132,11 @@ sub html {
 	if (exists $struct->{form} && ref $struct->{form} eq 'HASH'){
 		$form = _formToHtml($struct->{form});
 		delete $struct->{form};
-	}elsif( exists $self->getEnv()->{'restapi.class'} && $self->getEnv()->{'restapi.class'}->can('GET_FORM')){
+	}elsif( exists $self->getEnv()->{'REST.class'} && $self->getEnv()->{'REST.class'}->can('GET_FORM')){
 		my $req = Plack::Request->new($self->getEnv());
 		my $par = $req->parameters;
 		$par->add('content', $content);
-		$form = _formToHtml($self->getEnv()->{'restapi.class'}->GET_FORM($par));
+		$form = _formToHtml($self->getEnv()->{'REST.class'}->GET_FORM($par));
 	}
 
 "
