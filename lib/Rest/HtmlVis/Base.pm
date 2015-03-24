@@ -172,7 +172,6 @@ sub head {
 
 	### !!! if edit main.css edit also inline css in else branch
 
-	if ($local){
 		return '
 	<link href="/static/google-code-prettify/prettify.css" rel="stylesheet">
 	<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -187,20 +186,7 @@ sub head {
 	<script src="/static/google-code-prettify/prettify.js"></script>
 	<script src="/static/google-code-prettify/lang-yaml.js"></script>
 		';
-	}else{
-		return '
-	<link href="https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js?lang=yaml" rel="stylesheet">
-	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
-	<style>
-	'.$style.'
-	</style>
 
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-		';
-	}
 }
 
 sub html {

@@ -5,7 +5,7 @@ Rest::HtmlVis - Rest API visualizer in HTML
 # SYNOPSIS
 
 Transform perl hash to html.
-Each key in perl hash is transormed to the piece of html, js and css those are include in main html.
+Each key in perl hash is transormed to the piece of html, js and css which are include in main html.
 
 Example:
 
@@ -69,11 +69,12 @@ Example:
 
         { events => Rest::HtmlVis::Events }   
 
-Specific param is 'param.local' that defines if third party javascript and css is download from internet or from local repository.
-If you want to use local repository it is important to serve static content from static directory.
-Example:
+Third-party js library are primary mapped to /static URL.
+You have to manage this url by your http server and map this url to share directory.
+For example in Plack:
 
-        mount '/static' => Plack::App::File->new(root => "/path_to_static_directory/static/")->to_app;
+        my $share = try { File::ShareDir::dist_dir('Rest-HtmlVis') } || "../Rest-HtmlVis/share/";
+        mount "/static" => Plack::App::File->new(root => $share);
 
 ## html( hash\_struct )
 
