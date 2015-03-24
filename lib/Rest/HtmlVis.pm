@@ -96,6 +96,8 @@ sub _try_load {
 
 1;
 
+=encoding utf-8
+
 =head1 NAME
 
 Rest::HtmlVis - Rest API visualizer in HTML
