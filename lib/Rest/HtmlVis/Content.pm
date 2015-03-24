@@ -266,6 +266,8 @@ sub _formToHtml {
 	return $form;
 }
 
+=encoding utf-8
+
 =head1 AUTHOR
 
 Václav Dovrtěl E<lt>vaclav.dovrtel@gmail.comE<gt>

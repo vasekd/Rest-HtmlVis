@@ -163,6 +163,8 @@ sub html {
 	return;
 }
 
+=encoding utf-8
+
 =head1 AUTHOR
 
 Václav Dovrtěl E<lt>vaclav.dovrtel@gmail.comE<gt>
