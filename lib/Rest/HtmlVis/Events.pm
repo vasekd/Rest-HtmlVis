@@ -14,9 +14,11 @@ sub head {
 		push @data, sprintf("[%s,%s]", $key, $struct->{$key});
 	}
 
-	return '<script language="javascript" type="text/javascript" src="/static/flot/jquery.flot.js"></script>
-	<script language="javascript" type="text/javascript" src="/static/flot/jquery.flot.time.js"></script>
-	<script language="javascript" type="text/javascript" src="/static/flot/jquery.flot.threshold.js"></script>
+	my $static = $self->baseurl;
+
+	return '<script language="javascript" type="text/javascript" src="'.$static.'/flot/jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="'.$static.'/flot/jquery.flot.time.js"></script>
+	<script language="javascript" type="text/javascript" src="'.$static.'/flot/jquery.flot.threshold.js"></script>
 	<script type="text/javascript">
 		$(function() {
 

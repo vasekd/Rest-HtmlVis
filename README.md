@@ -45,6 +45,10 @@ Example:
 
 HtmlVis has default blocks that are show everytime:
 
+- default.baseurl
+
+    Set default prefix for links in html. Default is '/static'
+
 - default.base
 
     See [Rest::HtmlVis::Base](https://metacpan.org/pod/Rest::HtmlVis::Base).
@@ -73,7 +77,8 @@ Third-party js library are primary mapped to /static URL.
 You have to manage this url by your http server and map this url to share directory.
 For example in Plack:
 
-        my $share = try { File::ShareDir::dist_dir('Rest-HtmlVis') } || "../Rest-HtmlVis/share/";
+        use File::ShareDir;
+        my $share = File::ShareDir::dist_dir('Rest-HtmlVis') || "../Rest-HtmlVis/share/";
         mount "/static" => Plack::App::File->new(root => $share);
 
 ## html( hash\_struct )

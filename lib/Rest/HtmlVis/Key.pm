@@ -46,8 +46,16 @@ Example:
 =cut
 
 sub new {
-	my ($class) = @_;
-	return bless {}, $class;
+	my ($class, $baseurl) = @_;
+	return bless {baseurl => $baseurl}, $class;
+}
+
+=head2 baseurl
+
+=cut
+
+sub baseurl {
+	return $_[0]->{baseurl};
 }
 
 =head2 setStruct

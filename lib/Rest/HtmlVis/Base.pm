@@ -40,7 +40,7 @@ my $style =
 		  font: 14px/1 Helvetica, Verdana, sans-serif;
 		}
 
-		/* Bootstrap */
+		/* bootstrap-3.3.2-dist */
 		.row {
 		  margin: 10px 0px 0px 0px;
 		}
@@ -170,21 +170,21 @@ my $style =
 sub head {
 	my ($self, $local) = @_;
 
-	### !!! if edit main.css edit also inline css in else branch
+	my $static = $self->baseurl;
 
-		return '
-	<link href="/static/google-code-prettify/prettify.css" rel="stylesheet">
-	<link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	return '
+	<link href="'.$static.'/google-code-prettify/prettify.css" rel="stylesheet">
+	<link href="'.$static.'/bootstrap-3.3.2-dist/css/bootstrap.min.css" rel="stylesheet">
 	<style>
 	'.$style.'
 	</style>	
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<script src="/static/jquery.min.js"></script>
-	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
-	<script src="/static/google-code-prettify/prettify.js"></script>
-	<script src="/static/google-code-prettify/lang-yaml.js"></script>
+	<script src="'.$static.'/jquery.min.js"></script>
+	<script src="'.$static.'/bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
+	<script src="'.$static.'/google-code-prettify/prettify.js"></script>
+	<script src="'.$static.'/google-code-prettify/lang-yaml.js"></script>
 		';
 
 }

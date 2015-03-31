@@ -18,6 +18,10 @@ sub new {
 
 	my $self = bless {}, $class;
 
+	### Set uri path
+	$self->{baseurl} = "/static";
+	$self->{baseurl} = $params->{'default.baseurl'} if exists $params->{'default.baseurl'};
+
 	### Set params
 	foreach my $key (keys %$params) {
 		$based->{$key} = $params->{$key};
@@ -31,11 +35,16 @@ sub new {
 	return $self;
 }
 
+sub baseurl {
+	my ($self) = shift;
+	return $self->{baseurl};
+}
+
 sub loadVisObject {
 	my ($self, $key, $class) = @_;
 
 	if (_try_load($class)){
-		my $vis = $class->new;
+		my $vis = $class->new($self->baseurl);
 		my $order = $vis->getOrder;
 		push(@{$self->{htmlVis}{$order}}, {
 			key => $key,
@@ -148,6 +157,10 @@ HtmlVis has default blocks that are show everytime:
 
 =over 4
 
+=item * default.baseurl
+
+Set default prefix for links in html. Default is '/static'
+
 =item * default.base
 
 See L<Rest::HtmlVis::Base>.
@@ -177,8 +190,9 @@ Example:
 Third-party js library are primary mapped to /static URL.
 You have to manage this url by your http server and map this url to share directory.
 For example in Plack:
-
-	my $share = try { File::ShareDir::dist_dir('Rest-HtmlVis') } || "../Rest-HtmlVis/share/";
+	
+	use File::ShareDir;
+	my $share = File::ShareDir::dist_dir('Rest-HtmlVis') || "../Rest-HtmlVis/share/";
 	mount "/static" => Plack::App::File->new(root => $share);
 
 =cut
