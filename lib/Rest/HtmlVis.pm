@@ -22,14 +22,14 @@ sub new {
 	$self->{baseurl} = "/static";
 	$self->{baseurl} = $params->{'default.baseurl'} if exists $params->{'default.baseurl'};
 
-	### Set params
-	foreach my $key (keys %$params) {
-		$based->{$key} = $params->{$key};
+	### Add htmlvis
+	foreach my $key (sort keys %$params){
+		$self->loadVisObject($key, $params->{$key});
 	}
 
-	### Add htmlvis
-	foreach my $key (sort keys %{$based}){
-		$self->loadVisObject($key, $based->{$key});
+	### Set params
+	foreach my $key (sort keys %$based) {
+		$self->loadVisObject($key, $based->{$key}) unless exists $params->{$key};
 	}
 
 	return $self;
