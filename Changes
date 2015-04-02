@@ -2,6 +2,9 @@ Revision history for Rest-HtmlVis
 
 {{$NEXT}}
 
+0.04  2015-04-02 10:17:30 CEST
+	Fixed global variable
+
 0.03  2015-03-31 19:10:43 CEST
 	Changed default static path to htmlvis, for better compatibility
 	Added missing bootstrap directory
