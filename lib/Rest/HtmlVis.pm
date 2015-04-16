@@ -56,8 +56,6 @@ sub loadVisObject {
 sub html {
 	my ($self, $struct, $env) = @_;
 
-	return unless ref $struct eq 'HASH';
-
 	### manage keys
 	my $head_parts = '';
 	my $onload_parts = '';

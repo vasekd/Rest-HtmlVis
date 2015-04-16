@@ -108,7 +108,7 @@ sub html {
 
 	### Links
 	my $links = '';
-	if (exists $struct->{links} && ref $struct->{links} eq 'ARRAY'){
+	if (ref $struct eq 'HASH' && exists $struct->{links} && ref $struct->{links} eq 'ARRAY'){
 		foreach my $link (@{$struct->{links}}) {
 			$links .= '<li><a href="'.$link->{href}.'" rel="'.$link->{rel}.'">'.$link->{href}.'</a><span> - '.$link->{title}.'</span></li>';
 		}
@@ -129,7 +129,7 @@ sub html {
 	### Form
 	my $form = {};
 #	if (exists $struct->{form} && ref $struct->{form} eq 'HASH'){
-	if (exists $struct->{form} && ref $struct->{form} eq 'HASH'){
+	if (ref $struct eq 'HASH' && exists $struct->{form} && ref $struct->{form} eq 'HASH'){
 		$form = _formToHtml($struct->{form});
 		delete $struct->{form};
 	}elsif( exists $self->getEnv()->{'REST.class'} && $self->getEnv()->{'REST.class'}->can('GET_FORM')){
