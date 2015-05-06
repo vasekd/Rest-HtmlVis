@@ -105,7 +105,8 @@ sub onload {
 sub html {
 	my ($self) = @_;
 	my $struct = $self->getStruct;
-
+	my $env = $self->getEnv;
+	
 	### Links
 	my $links = '';
 	if (ref $struct eq 'HASH' && exists $struct->{links} && ref $struct->{links} eq 'ARRAY'){
@@ -132,11 +133,11 @@ sub html {
 	if (ref $struct eq 'HASH' && exists $struct->{form} && ref $struct->{form} eq 'HASH'){
 		$form = _formToHtml($struct->{form});
 		delete $struct->{form};
-	}elsif( exists $self->getEnv()->{'REST.class'} && $self->getEnv()->{'REST.class'}->can('GET_FORM')){
-		my $req = Plack::Request->new($self->getEnv());
+	}elsif( exists $env->{'REST.class'} && $env->{'REST.class'}->can('GET_FORM')){
+		my $req = Plack::Request->new($env);
 		my $par = $req->parameters;
 		$par->add('content', $content);
-		$form = _formToHtml($self->getEnv()->{'REST.class'}->GET_FORM($par));
+		$form = _formToHtml($env->{'REST.class'}->GET_FORM($env, $par));
 	}
 
 "
