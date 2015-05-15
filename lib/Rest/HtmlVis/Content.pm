@@ -245,7 +245,8 @@ sub _formToHtml {
 
 				if ($type eq 'text'){
 					my $default = ($param->{default}||'');
-					$html .= '<input type="text" name="'.$name.'" class="form-control" placeholder="'.$default.'">';
+					$html .= '<label class=\"col-lg-4 control-label\">'.$name.'</label>
+					<input type="text" name="'.$name.'" class="form-control" placeholder="'.$default.'"></input>';
 				}elsif ($type eq 'textarea'){
 					my $rows = ($param->{rows}||20);
 					my $cols = ($param->{cols}||3);
