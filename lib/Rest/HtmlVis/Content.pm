@@ -241,7 +241,7 @@ sub _formToHtml {
 				my $type = $param->{type};
 				my $name = $param->{name};
 
-				next unless $name;
+				next unless $name and $type;
 
 				if ($type eq 'text'){
 					my $default = ($param->{default}||'');
