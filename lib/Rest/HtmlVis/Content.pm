@@ -254,6 +254,14 @@ sub _formToHtml {
 					$html .= '<textarea class="form-control" name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'">'.$default.'</textarea>';
 				}elsif ($type eq 'checkbox'){
 				}elsif ($type eq 'radio'){
+				}elsif ($type eq 'select'){
+					$html .= '<label class=\"col-lg-4 control-label\">'.$param->{name}.'</label>';
+					$html .= '<select class="form-control" name="'.$param->{name}.'">';
+					foreach my $v (@{$param->{values}}){
+						my $default = (defined $param->{default} && $v eq $param->{default}) ? 'selected="selected"' : '';
+						$html .= '<option '.$default.'>'.$v.'</option>';
+					}
+					$html .= '</select>';
 				}
 			}
 			$form->{$method} .= $html;
