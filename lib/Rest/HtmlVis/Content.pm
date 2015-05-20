@@ -116,6 +116,9 @@ sub html {
 		delete $struct->{links};
 	}
 
+	### Remove form content
+	my $formStruct = delete $struct->{form} if (ref $struct eq 'HASH' && exists $struct->{form} && ref $struct->{form} eq 'HASH');
+
 	### Content
 	my $content = '';
 	{
@@ -129,10 +132,8 @@ sub html {
 
 	### Form
 	my $form = {};
-#	if (exists $struct->{form} && ref $struct->{form} eq 'HASH'){
-	if (ref $struct eq 'HASH' && exists $struct->{form} && ref $struct->{form} eq 'HASH'){
-		$form = _formToHtml($struct->{form});
-		delete $struct->{form};
+	if ($formStruct){
+		$form = _formToHtml($formStruct);
 	}elsif( exists $env->{'REST.class'} && $env->{'REST.class'}->can('GET_FORM')){
 		my $req = Plack::Request->new($env);
 		my $par = $req->parameters;
@@ -258,8 +259,14 @@ sub _formToHtml {
 					$html .= '<label class=\"col-lg-4 control-label\">'.$param->{name}.'</label>';
 					$html .= '<select class="form-control" name="'.$param->{name}.'">';
 					foreach my $v (@{$param->{values}}){
-						my $default = (defined $param->{default} && $v eq $param->{default}) ? 'selected="selected"' : '';
-						$html .= '<option '.$default.'>'.$v.'</option>';
+						my $name = ''; my $id = '';
+						if (ref $v eq 'ARRAY'){
+							($id, $name) = @$v;
+						}else{
+							$name = $v; $id = $v;
+						}
+						my $default = (defined $param->{default} && $id eq $param->{default}) ? 'selected="selected"' : '';
+						$html .= '<option id="'.$id.'" '.$default.'>'.$name.'</option>';
 					}
 					$html .= '</select>';
 				}
