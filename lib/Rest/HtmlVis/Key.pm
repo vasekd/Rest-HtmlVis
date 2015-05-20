@@ -64,7 +64,7 @@ sub baseurl {
 
 sub setStruct {
 	my ($self, $key, $struct, $env) = @_;
-	if (exists $struct->{$key}){
+	if ($struct && ref $struct eq 'HASH' && exists $struct->{$key}){
 		$self->{struct} = $struct->{$key};
 		$self->{env} = $env;
 		return 1;
