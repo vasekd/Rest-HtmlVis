@@ -2,6 +2,11 @@ Revision history for Rest-HtmlVis
 
 {{$NEXT}}
 
+0.05  2015-05-20 18:52:42 CEST
+	Added env to GET_FORM
+	Added select element for GET_FORM
+	Fixed empty content
+
 0.04  2015-04-02 10:17:30 CEST
 	Fixed global variable
 
