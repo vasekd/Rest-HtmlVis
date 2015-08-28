@@ -2,6 +2,9 @@ Revision history for Rest-HtmlVis
 
 {{$NEXT}}
 
+0.06  2015-08-28 16:20:13 CEST
+	Added radio and checkbox form elements
+
 0.05  2015-05-20 18:52:42 CEST
 	Added env to GET_FORM
 	Added select element for GET_FORM
