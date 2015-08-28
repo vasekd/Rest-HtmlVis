@@ -241,23 +241,64 @@ sub _formToHtml {
 			foreach my $param (@{$struct->{$method}{params}}) {
 				my $type = $param->{type};
 				my $name = $param->{name};
+				my $description = $param->{description}||$param->{name};
 
 				next unless $name and $type;
 
 				if ($type eq 'text'){
 					my $default = ($param->{default}||'');
-					$html .= '<label class=\"col-lg-4 control-label\">'.$name.'</label>
+					$html .= '<div class="form-group">';
+					$html .= '<label>'.$description.'</label>
 					<input type="text" name="'.$name.'" class="form-control" placeholder="'.$default.'"></input>';
+					$html .= '</div>';
 				}elsif ($type eq 'textarea'){
 					my $rows = ($param->{rows}||20);
 					my $cols = ($param->{cols}||3);
 					my $default = ($param->{default}||'');
+					$html .= '<div class="form-group">';
+					$html .= '<label>'.$description.'</label>';
 					$html .= '<textarea class="form-control" name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'">'.$default.'</textarea>';
+					$html .= '</div>';
 				}elsif ($type eq 'checkbox'){
+					$html .= '<div class="form-group">';
+					$html .= "<label >".$description.'</label>';
+						foreach my $v (@{$param->{values}}){
+							my $optionName = ''; my $value = '';
+							if (ref $v eq 'ARRAY'){
+								($optionName, $value) = @$v;
+							}else{
+								$optionName = $v; $value = $v;
+							}
+							my $checked='';
+							if(exists $param->{default} and ref $param->{default} eq 'ARRAY'){
+								foreach my $d (@{$param->{default}}){
+									$checked = 'checked="checked"'if ($d eq $value);
+								}
+							}
+							$html .= "<div class='checkbox'><label><input type='checkbox' value='$value' name='$name' $checked />&nbsp;$optionName</label></div>";
+						}
+						$html .= '</div>';
 				}elsif ($type eq 'radio'){
+					$html .= '<div class="form-group">';
+					$html .= "<label>".$description.'</label>';
+						foreach my $v (@{$param->{values}}){
+							my $optionName = ''; my $value = '';
+							if (ref $v eq 'ARRAY'){
+								($optionName, $value) = @$v;
+							}else{
+								$optionName = $v; $value = $v;
+							}
+							my $checked='';
+							if(exists $param->{default}){
+								$checked = 'checked="checked"'if ($param->{default} eq $value);
+							}
+							$html .= "<div class='radio'><label><input type='radio' value='$value' name='$name' $checked />$optionName</label></div>";
+						}
+						$html .= '</div>';
 				}elsif ($type eq 'select'){
-					$html .= '<label class=\"col-lg-4 control-label\">'.$param->{name}.'</label>';
-					$html .= '<select class="form-control" name="'.$param->{name}.'">';
+					$html .= '<div class="form-group">';
+					$html .= '<label>'.$description.'</label>';
+					$html .= '<select class="form-control" name="'.$name.'">';
 					foreach my $v (@{$param->{values}}){
 						my $name = ''; my $id = '';
 						if (ref $v eq 'ARRAY'){
@@ -269,6 +310,7 @@ sub _formToHtml {
 						$html .= '<option id="'.$id.'" '.$default.'>'.$name.'</option>';
 					}
 					$html .= '</select>';
+					$html .= '</div>';
 				}
 			}
 			$form->{$method} .= $html;
