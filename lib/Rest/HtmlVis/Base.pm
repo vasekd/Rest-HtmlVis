@@ -37,7 +37,6 @@ my $style =
 '		body {
 		  padding: 0px;
 		  margin: 0px;
-		  font: 14px/1 Helvetica, Verdana, sans-serif;
 		}
 
 		/* bootstrap-3.3.2-dist */
@@ -117,6 +116,7 @@ my $style =
 		  list-style-type: none;
 		  margin: 5px 0px 0px 10px;
 		  padding: 0px;
+		  font: 14px/1 Helvetica, Verdana, sans-serif;
 		}
 
 		.links li {
