@@ -20,7 +20,7 @@ sub new {
 
 	### Set uri path
 	$self->{baseurl} = "/static";
-	$self->{baseurl} = $params->{'default.baseurl'} if exists $params->{'default.baseurl'};
+	$self->{baseurl} = delete $params->{'default.baseurl'} if exists $params->{'default.baseurl'};
 
 	### Add htmlvis
 	foreach my $key (sort keys %$params){
