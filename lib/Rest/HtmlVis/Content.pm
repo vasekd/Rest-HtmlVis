@@ -35,7 +35,7 @@ Perhaps a little code snippet.
 
 =head1 KEYS
 
-=head2 links
+=head2 link
 
 Convert default strcuture of links. Each link should consists of:
 
@@ -57,7 +57,7 @@ Identifier of the link (type of the link)
 
 Example:
 
-	links => [
+	link => [
 		{
 			href => '/api/test',
 			title => 'Test resource',
@@ -109,11 +109,11 @@ sub html {
 	
 	### Links
 	my $links = '';
-	if (ref $struct eq 'HASH' && exists $struct->{links} && ref $struct->{links} eq 'ARRAY'){
-		foreach my $link (@{$struct->{links}}) {
+	if (ref $struct eq 'HASH' && exists $struct->{link} && ref $struct->{link} eq 'ARRAY'){
+		foreach my $link (@{$struct->{link}}) {
 			$links .= '<li><a href="'.$link->{href}.'" rel="'.$link->{rel}.'">'.$link->{href}.'</a><span> - '.$link->{title}.'</span></li>';
 		}
-		delete $struct->{links};
+		delete $struct->{link};
 	}
 
 	### Remove form content
