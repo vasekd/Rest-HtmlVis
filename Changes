@@ -2,6 +2,10 @@ Revision history for Rest-HtmlVis
 
 {{$NEXT}}
 
+0.07  2015-09-03 13:54:05 CEST
+	Fixed baseurl link in conf
+	Changed links to link
+
 0.06  2015-08-28 16:20:13 CEST
 	Added radio and checkbox form elements
 
