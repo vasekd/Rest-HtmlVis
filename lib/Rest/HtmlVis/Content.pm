@@ -166,22 +166,22 @@ $content
 			<div class=\"tab-content\" id=\"myTabContent\">
 				<div role=\"tabpanel\" class=\"tab-pane fade in active\" id=\"get\">
 					<form class=\"method-form\" method=\"GET\">
-".($form->{GET}||'<div class="text-center"> Not allowed </div>')."
+".($form->{get}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>
 				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"post\">
 					<form class=\"method-form\" method=\"POST\">
-".($form->{POST}||'<div class="text-center"> Not allowed </div>')."
+".($form->{post}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>
 				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"put\">
 					<form class=\"method-form\" onSubmit=\""._getAjaxCall($self, 'PUT')."\">
-".($form->{PUT}||'<div class="text-center"> Not allowed </div>')."
+".($form->{put}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>
 				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"delete\">
 					<form class=\"method-form\" onSubmit=\""._getAjaxCall($self, 'DELETE')."\">
-".($form->{DELETE}||'<div class="text-center"> Not allowed </div>')."
+".($form->{delete}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>
 			</div>
@@ -210,9 +210,9 @@ sub _getAjaxCall {
 
 
 my $defaultForm = {
-	GET => 	"<button type=\"submit\" class=\"btn btn-default\">Get</button>",
+	get => 	"<button type=\"submit\" class=\"btn btn-default\">Get</button>",
 	
-	POST => "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Post as</label> 
+	post => "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Post as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
@@ -220,7 +220,7 @@ my $defaultForm = {
 	</select>
 	<button type=\"submit\" class=\"btn btn-default\">Post</button>",
 
-	PUT =>  "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Put as</label> 
+	put =>  "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Put as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
@@ -228,7 +228,7 @@ my $defaultForm = {
 	</select>
 	<button type=\"submit\" class=\"btn btn-default\">Put</button>",
 	
-	DELETE => "<button type=\"submit\" class=\"btn btn-default\">Delete</button>",
+	delete => "<button type=\"submit\" class=\"btn btn-default\">Delete</button>",
 };
 
 sub _formToHtml {
