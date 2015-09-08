@@ -2,6 +2,10 @@ Revision history for Rest-HtmlVis
 
 {{$NEXT}}
 
+0.08  2015-09-08 14:51:57 CEST
+	Form configuration is case insensitive
+	Added "Get As" to post form
+
 0.07  2015-09-03 13:54:05 CEST
 	Fixed baseurl link in conf
 	Changed links to link
