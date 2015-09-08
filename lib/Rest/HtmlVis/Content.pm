@@ -250,6 +250,7 @@ sub _formToHtml {
 
 	my $form = {};
 	foreach my $method (keys %{$struct}) {
+		$method = lc ($method);
 		if (exists $struct->{$method}{params} && ref $struct->{$method}{params} eq 'ARRAY'){
 			my $html = '';
 			foreach my $param (@{$struct->{$method}{params}}) {
