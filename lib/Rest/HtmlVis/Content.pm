@@ -212,7 +212,14 @@ sub _getAjaxCall {
 my $defaultForm = {
 	get => 	"<button type=\"submit\" class=\"btn btn-default\">Get</button>",
 	
-	post => "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Post as</label> 
+	post => "<label class=\"col-lg-4 control-label\">Get as</label> 
+	<select name=\"format\" class=\"form-control\">
+		<option>text/html</option>
+	  <option>application/json</option>
+	  <option selected=\"selected\">text/yaml</option>
+	  <option>text/plain</option>
+	</select>
+	<label class=\"col-lg-4 control-label\">Post as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
@@ -220,14 +227,21 @@ my $defaultForm = {
 	</select>
 	<button type=\"submit\" class=\"btn btn-default\">Post</button>",
 
-	put =>  "<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Put as</label> 
+	put =>  "<label class=\"col-lg-4 control-label\">Get as</label> 
+	<select name=\"format\" class=\"form-control\">
+		<option>text/html</option>
+	  <option>application/json</option>
+	  <option selected=\"selected\">text/yaml</option>
+	  <option>text/plain</option>
+	</select>
+	<label class=\"col-lg-4 control-label\">Put as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
 	  <option>text/plain</option>
 	</select>
 	<button type=\"submit\" class=\"btn btn-default\">Put</button>",
-	
+
 	delete => "<button type=\"submit\" class=\"btn btn-default\">Delete</button>",
 };
 
