@@ -111,7 +111,7 @@ sub html {
 	my $links = '';
 	if (ref $struct eq 'HASH' && exists $struct->{link} && ref $struct->{link} eq 'ARRAY'){
 		foreach my $link (@{$struct->{link}}) {
-			$links .= '<li><a href="'.$link->{href}.'" rel="'.$link->{rel}.'">'.$link->{href}.'</a><span> - '.$link->{title}.'</span></li>';
+			$links .= '<li><a href="'.$link->{href}.'" rel="'.$link->{rel}.'">'.$link->{title}.'</a></li>';
 		}
 		delete $struct->{link};
 	}
