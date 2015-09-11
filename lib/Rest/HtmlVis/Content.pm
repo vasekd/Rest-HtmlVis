@@ -134,14 +134,21 @@ sub html {
 	my $form = {};
 	if ($formStruct){
 		$form = _formToHtml($formStruct);
-	}elsif( exists $env->{'REST.class'} && $env->{'REST.class'}->can('GET_FORM')){
-		my $req = Plack::Request->new($env);
-		my $par = $req->parameters;
-		$par->add('content', $content);
-		$form = _formToHtml($env->{'REST.class'}->GET_FORM($env, $par));
 	}
 
-"
+	my $firstActive = 'get';
+	foreach my $method ('get','post','put','delete'){
+		if ($form->{$method}){
+			$firstActive=$method;
+			last;
+		}
+	}
+
+	if( exists $env->{'REST.class'} && $env->{'REST.class'}->can('GET') and !exists $form->{get}){
+		$form->{get} = _formToHtml( {get => {}} )->{get};
+	}
+
+my $ret = "
 		<div class=\"col-lg-3\">
 			<ul class=\"links\">
 				$links
@@ -155,39 +162,25 @@ $content
 		<div class=\"col-lg-3\" role=\"tabpanel\">
 
 			<!-- Nav tabs -->
-			<ul id=\"myTab\" class=\"nav nav-tabs nav-justified\" role=\"tablist\">
-				<li role=\"presentation\" class=\"active\"><a href=\"#get\" aria-controls=\"home\" role=\"tab\" data-toggle=\"tab\">GET</a></li>
-				<li role=\"presentation\"><a href=\"#post\" aria-controls=\"profile\" role=\"tab\" data-toggle=\"tab\">POST</a></li>
-				<li role=\"presentation\"><a href=\"#put\" aria-controls=\"messages\" role=\"tab\" data-toggle=\"tab\">PUT</a></li>
-				<li role=\"presentation\"><a href=\"#delete\" aria-controls=\"settings\" role=\"tab\" data-toggle=\"tab\">DELETE</a></li>
-			</ul>
+			<ul id=\"myTab\" class=\"nav nav-tabs nav-justified\" role=\"tablist\">";
 
-			<!-- Tab panes -->
-			<div class=\"tab-content\" id=\"myTabContent\">
-				<div role=\"tabpanel\" class=\"tab-pane fade in active\" id=\"get\">
-					<form class=\"method-form\" method=\"GET\">
-".($form->{get}||'<div class="text-center"> Not allowed </div>')."
+	foreach my $method ('get','post','put','delete'){
+		$ret .="				<li role=\"presentation\"" . ( $firstActive eq $method?" class=\"active\"":($form->{$method}?'':" class=\"disabled\"")) . "><a role=\"tab\"". ($form->{$method}?" href=\"#$method\" data-toggle=\"tab\"":'') . ">" . uc($method) . "</a></li>";
+	}
+$ret .= "			<!-- Tab panes -->
+			<div class=\"tab-content\" id=\"myTabContent\">";
+	foreach my $method ('get','post','put','delete'){
+		$ret .= "				<div role=\"tabpanel\" class=\"tab-pane fade" . ( $firstActive eq $method?"  in active":'') . "\" id=\"$method\">
+					<form class=\"method-form\" ". ($method =~ /^(put|delete)$/?"onSubmit=\""._getAjaxCall($self,  uc($method)):"method=\"" . uc($method)) . "\">".($form->{$method}||'<div class="text-center"> Not allowed </div>')."
 					</form>
-				</div>
-				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"post\">
-					<form class=\"method-form\" method=\"POST\">
-".($form->{post}||'<div class="text-center"> Not allowed </div>')."
-					</form>
-				</div>
-				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"put\">
-					<form class=\"method-form\" onSubmit=\""._getAjaxCall($self, 'PUT')."\">
-".($form->{put}||'<div class="text-center"> Not allowed </div>')."
-					</form>
-				</div>
-				<div role=\"tabpanel\" class=\"tab-pane fade\" id=\"delete\">
-					<form class=\"method-form\" onSubmit=\""._getAjaxCall($self, 'DELETE')."\">
-".($form->{delete}||'<div class="text-center"> Not allowed </div>')."
-					</form>
-				</div>
-			</div>
+				</div>";
+	}
+
+$ret .= "			</div>
 
 		</div>
-"
+";
+return $ret;
 }
 
 sub _getAjaxCall {
@@ -210,7 +203,14 @@ sub _getAjaxCall {
 
 
 my $defaultForm = {
-	get => 	"<button type=\"submit\" class=\"btn btn-default\">Get</button>",
+	get => 	"<label class=\"col-lg-4 control-label\">Get as</label> 
+	<select name=\"format\" class=\"form-control\">
+		<option>text/html</option>
+	  <option>application/json</option>
+	  <option selected=\"selected\">text\/yaml</option>
+	  <option>text/plain</option>
+	</select>
+	<button type=\"submit\" class=\"btn btn-default\">Get</button>",
 	
 	post => "<label class=\"col-lg-4 control-label\">Get as</label> 
 	<select name=\"format\" class=\"form-control\">
@@ -219,7 +219,7 @@ my $defaultForm = {
 	  <option selected=\"selected\">text/yaml</option>
 	  <option>text/plain</option>
 	</select>
-	<label class=\"col-lg-4 control-label\">Post as</label> 
+	<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Post as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
@@ -234,7 +234,7 @@ my $defaultForm = {
 	  <option selected=\"selected\">text/yaml</option>
 	  <option>text/plain</option>
 	</select>
-	<label class=\"col-lg-4 control-label\">Put as</label> 
+	<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Put as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
@@ -256,15 +256,15 @@ sub _formToHtml {
 			foreach my $param (@{$struct->{$method}{params}}) {
 				my $type = $param->{type};
 				my $name = $param->{name};
-				my $description = $param->{description}||$param->{name};
+				my $description = $param->{description};
 
 				next unless $name and $type;
 
 				if ($type eq 'text'){
 					my $default = ($param->{default}||'');
 					$html .= '<div class="form-group">';
-					$html .= '<label>'.$description.'</label>
-					<input type="text" name="'.$name.'" class="form-control" placeholder="'.$default.'"></input>';
+					$html .= '<label>'.$description.'</label>'if ($description);
+					$html .= '<input type="text" name="'.$name.'" class="form-control" placeholder="'.$default.'"></input>';
 					$html .= '</div>';
 				}elsif ($type eq 'textarea'){
 					my $rows = ($param->{rows}||20);
@@ -276,7 +276,7 @@ sub _formToHtml {
 					$html .= '</div>';
 				}elsif ($type eq 'checkbox'){
 					$html .= '<div class="form-group">';
-					$html .= "<label >".$description.'</label>';
+					$html .= "<label >".$description.'</label>'if ($description);
 						foreach my $v (@{$param->{values}}){
 							my $optionName = ''; my $value = '';
 							if (ref $v eq 'ARRAY'){
@@ -295,7 +295,7 @@ sub _formToHtml {
 						$html .= '</div>';
 				}elsif ($type eq 'radio'){
 					$html .= '<div class="form-group">';
-					$html .= "<label>".$description.'</label>';
+					$html .= "<label>".$description.'</label>'if ($description);
 						foreach my $v (@{$param->{values}}){
 							my $optionName = ''; my $value = '';
 							if (ref $v eq 'ARRAY'){
@@ -312,7 +312,7 @@ sub _formToHtml {
 						$html .= '</div>';
 				}elsif ($type eq 'select'){
 					$html .= '<div class="form-group">';
-					$html .= '<label>'.$description.'</label>';
+					$html .= '<label>'.$description.'</label>'if ($description);
 					$html .= '<select class="form-control" name="'.$name.'">';
 					foreach my $v (@{$param->{values}}){
 						my $name = ''; my $id = '';
