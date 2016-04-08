@@ -20,10 +20,12 @@ sub new {
 
 	### Set uri path
 	$self->{baseurl} = "/static";
-	$self->{baseurl} = delete $params->{'default.baseurl'} if exists $params->{'default.baseurl'};
+	# Don't delete key, because of original hash
+	$self->{baseurl} = $params->{'default.baseurl'} if exists $params->{'default.baseurl'};
 
 	### Add htmlvis
 	foreach my $key (sort keys %$params){
+		next if $key eq 'default.baseurl';
 		$self->loadVisObject($key, $params->{$key});
 	}
 
