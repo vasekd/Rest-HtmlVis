@@ -2,6 +2,9 @@ Revision history for Rest-HtmlVis
 
 {{$NEXT}}
 
+0.09  2016-04-08 02:46:14 CEST
+	Added yaml parser for struct
+
 0.08  2015-09-08 14:51:57 CEST
 	Form configuration is case insensitive
 	Added "Get As" to post form
