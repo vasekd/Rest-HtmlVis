@@ -4,7 +4,7 @@ use 5.008_005;
 use strict;
 use warnings FATAL => 'all';
 
-our $VERSION = '0.09'; # Set automatically by milla
+our $VERSION = '0.10'; # Set automatically by milla
 
 my $based = {
 	'default.base' => 'Rest::HtmlVis::Base',

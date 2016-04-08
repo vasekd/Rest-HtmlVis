@@ -45,9 +45,9 @@
             "File::ShareDir" : "0",
             "JSON::XS" : "0",
             "Plack::Request" : "0",
+            "URI::Escape::XS" : "0",
             "YAML::Syck" : "0",
-            "perl" : "5.006",
-            "URI::Escape::XS" : "0"
+            "perl" : "5.006"
          }
       }
    },
@@ -63,7 +63,7 @@
          "web" : "https://github.com/vasekd/Rest-HtmlVis"
       }
    },
-   "version" : "0.09",
+   "version" : "0.10",
    "x_contributors" : [
       "Zbynek Mares <zbynek.mares@gmail.com>"
    ]
