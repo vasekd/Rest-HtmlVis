@@ -173,6 +173,7 @@ sub head {
 	my $static = $self->baseurl;
 
 	return '
+	<meta charset="UTF-8">
 	<link href="'.$static.'/google-code-prettify/prettify.css" rel="stylesheet">
 	<link href="'.$static.'/bootstrap-3.3.2-dist/css/bootstrap.min.css" rel="stylesheet">
 	<style>
