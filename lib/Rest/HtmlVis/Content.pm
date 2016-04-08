@@ -256,7 +256,7 @@ sub _formToHtml {
 			foreach my $param (@{$struct->{$method}{params}}) {
 				my $type = $param->{type};
 				my $name = $param->{name};
-				my $description = $param->{description};
+				my $description = $param->{description}||'';
 
 				next unless $name and $type;
 
@@ -270,6 +270,9 @@ sub _formToHtml {
 					my $rows = ($param->{rows}||20);
 					my $cols = ($param->{cols}||3);
 					my $default = ($param->{default}||'');
+					if (ref $default eq 'HASH'){
+						$default = YAML::Syck::Dump($default);
+					}
 					$html .= '<div class="form-group">';
 					$html .= '<label>'.$description.'</label>';
 					$html .= '<textarea class="form-control" name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'">'.$default.'</textarea>';
