@@ -8,6 +8,7 @@ use parent qw( Rest::HtmlVis::Key );
 
 use Plack::Request;
 use YAML::Syck;
+use URI::Escape::XS qw/decodeURIComponent/;
 
 =head1 NAME
 
@@ -71,6 +72,8 @@ Define elements of formular for html.
 
 =cut
 
+my @defualtMethods = ('get','post','put','delete');
+
 sub setStruct {
 	my ($self, $key, $struct, $env) = @_;
 	$self->{struct} = $struct;
@@ -80,7 +83,7 @@ sub setStruct {
 }
 
 sub getOrder {
-	return 99999999999;
+	return 9999;
 }
 
 sub newRow {
@@ -88,14 +91,34 @@ sub newRow {
 }
 
 sub head {
-'
+ return <<END;
 	<script type="text/javascript">
-		$(\'#myTab a\').click(function (e) {
+		\$('#myTab a').click(function (e) {
 		  e.preventDefault();
-		  $(this).tab(\'show\');
-		})
+		  \$(this).tab('show');
+		});
+	function sendPut(methodType,url,jsvar){
+		var selected = \$( "select[name*='enctype'] option:selected" ).val();
+		var enctype = typeof selected == 'undefind'?'application/json':'application/x-www-form-urlencoded';
+		\$.ajax({
+			type: methodType,
+			url: url,
+			headers: {          
+			                 Accept : 'application/json; charset=utf-8',         
+			                'Content-Type': enctype + '; charset=utf-8'   
+			},
+			success: function(data) {
+				alert('Success'); 
+				window.location.href=url;
+			},
+			error: function(data) {
+				alert(data.responseText);
+			},
+			data: jsvar
+		});return false;
+	}
 	</script>
-'
+END
 }
 
 sub onload {
@@ -132,12 +155,15 @@ sub html {
 
 	### Form
 	my $form = {};
+	my $extForm = {};
 	if ($formStruct){
-		$form = _formToHtml($formStruct);
+		$form = _formToHtml($env,$formStruct,@defualtMethods);
 	}
-
+	if($formStruct){
+		$extForm = _extFormToHtml($env,$formStruct,(keys %{$formStruct}));
+	}
 	my $firstActive = 'get';
-	foreach my $method ('get','post','put','delete'){
+	foreach my $method (@defualtMethods){
 		if ($form->{$method}){
 			$firstActive=$method;
 			last;
@@ -145,12 +171,33 @@ sub html {
 	}
 
 	if( exists $env->{'REST.class'} && $env->{'REST.class'}->can('GET') and !exists $form->{get}){
-		$form->{get} = _formToHtml( {get => {}} )->{get};
+		$form->{get} = _formToHtml($env, {get => {}}, ('get') )->{get};
 	}
 
-my $ret = "
-		<div class=\"col-lg-3\">
-			<ul class=\"links\">
+	my $ret = "
+		<div class=\"col-lg-3\">";
+
+			if( keys %{$extForm} ){
+				$ret .= "			
+							<!-- Nav tabs -->
+							<ul id=\"myTabExt\" class=\"nav nav-tabs nav-justified\" role=\"tablist\">";
+					my @extkey = sort(keys %{$extForm});
+					my $firstActiveExt = $extkey[0];
+					foreach my $method (@extkey){
+						$ret .="				<li role=\"presentation\"" . ( $firstActiveExt eq $method?" class=\"active\"":($extForm->{$method}?'':" class=\"disabled\"")) . "><a role=\"tab\"". ($extForm->{$method}?" href=\"#$method\" data-toggle=\"tab\"":'') . ">" . uc($method) . "</a></li>";
+					}
+					$ret .= "			<!-- Tab panes -->
+							<div class=\"tab-content\" id=\"myTabContent\">";
+					foreach my $method (@extkey){
+						my $extForPar = $extForm->{$method}{params};
+						$ret .= "				<div role=\"tabpanel\" class=\"tab-pane fade" . ( $firstActiveExt eq $method?"  in active":'') . "\" id=\"$method\">
+									<form class=\"method-form\" ". ($extForPar->{method} =~ /^(put|delete)$/i?"onSubmit=\""._getAjaxCall($self,  uc($extForPar->{method}),$extForPar):"method=\"" . uc($extForPar->{method})) . "\"" . (exists $extForPar->{url}?'action="'.$extForPar->{url}:'') . "\">".($extForm->{$method}{html}||'<div class="text-center"> Not allowed </div>')."
+									</form>
+								</div>";
+					}
+				  $ret .= "</div><hr />";
+			}
+  $ret .= " 			<ul class=\"links\">
 				$links
 			</ul>
 		</div>
@@ -164,50 +211,44 @@ $content
 			<!-- Nav tabs -->
 			<ul id=\"myTab\" class=\"nav nav-tabs nav-justified\" role=\"tablist\">";
 
-	foreach my $method ('get','post','put','delete'){
-		$ret .="				<li role=\"presentation\"" . ( $firstActive eq $method?" class=\"active\"":($form->{$method}?'':" class=\"disabled\"")) . "><a role=\"tab\"". ($form->{$method}?" href=\"#$method\" data-toggle=\"tab\"":'') . ">" . uc($method) . "</a></li>";
+	foreach my $method (@defualtMethods){
+		$ret .="				<li role=\"presentation\"" . ( $firstActive eq $method?" class=\"active\"":(exists $form->{$method}?'':" class=\"disabled\"")) . "><a role=\"tab\"". (exists $form->{$method}?" href=\"#$method\" data-toggle=\"tab\"":'') . ">" . uc($method) . "</a></li>";
 	}
-$ret .= "			<!-- Tab panes -->
+	$ret .= "			<!-- Tab panes -->
 			<div class=\"tab-content\" id=\"myTabContent\">";
-	foreach my $method ('get','post','put','delete'){
+	foreach my $method (@defualtMethods){
 		$ret .= "				<div role=\"tabpanel\" class=\"tab-pane fade" . ( $firstActive eq $method?"  in active":'') . "\" id=\"$method\">
 					<form class=\"method-form\" ". ($method =~ /^(put|delete)$/?"onSubmit=\""._getAjaxCall($self,  uc($method)):"method=\"" . uc($method)) . "\">".($form->{$method}||'<div class="text-center"> Not allowed </div>')."
 					</form>
 				</div>";
 	}
-
-$ret .= "			</div>
+	$ret .= "			</div></div>
 
 		</div>
 ";
-return $ret;
+	return $ret;
 }
 
 sub _getAjaxCall {
-	my ($self, $methodType) = @_;
-	"\$.ajax({
-		type: '$methodType',
-		url: '".$self->getEnv()->{REQUEST_URI}."',
-		success: function(data) {
-			alert('Success'); 
-			var newDoc = document.open('text/html', 'replace');
-			newDoc.write(data);
-			newDoc.close();
-		},
-		error: function(data) {
-			alert(data.responseText);
-		},
-		data: \$(this).serialize()
-	}); return false;"
+	my ($self, $methodType, $params) = @_;
+	my $jsvar = "\$(this).serialize()";
+	my $url = $self->getEnv()->{REQUEST_URI};
+	if (defined $params){
+		$jsvar = $params->{jsvar} if exists $params->{jsvar};
+		$url = $params->{url} if exists $params->{url};
+	}
+	return <<END;
+	sendPut('$methodType','$url',$jsvar);
+END
 }
 
 
 my $defaultForm = {
 	get => 	"<label class=\"col-lg-4 control-label\">Get as</label> 
 	<select name=\"format\" class=\"form-control\">
-		<option>text/html</option>
+		<option selected=\"selected\">text/html</option>
 	  <option>application/json</option>
-	  <option selected=\"selected\">text\/yaml</option>
+	  <option>text\/yaml</option>
 	  <option>text/plain</option>
 	</select>
 	<button type=\"submit\" class=\"btn btn-default\">Get</button>",
@@ -219,7 +260,7 @@ my $defaultForm = {
 	  <option selected=\"selected\">text/yaml</option>
 	  <option>text/plain</option>
 	</select>
-	<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Post as</label> 
+	<label class=\"col-lg-4 control-label\">Post as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
@@ -227,14 +268,7 @@ my $defaultForm = {
 	</select>
 	<button type=\"submit\" class=\"btn btn-default\">Post</button>",
 
-	put =>  "<label class=\"col-lg-4 control-label\">Get as</label> 
-	<select name=\"format\" class=\"form-control\">
-		<option>text/html</option>
-	  <option>application/json</option>
-	  <option selected=\"selected\">text/yaml</option>
-	  <option>text/plain</option>
-	</select>
-	<label for=\"inputEmail3\" class=\"col-lg-4 control-label\">Put as</label> 
+	put =>  "<label class=\"col-lg-4 control-label\">Put as</label> 
 	<select name=\"enctype\" class=\"form-control\">
 	  <option>application/json</option>
 	  <option selected=\"selected\">text/yaml</option>
@@ -245,99 +279,169 @@ my $defaultForm = {
 	delete => "<button type=\"submit\" class=\"btn btn-default\">Delete</button>",
 };
 
-sub _formToHtml {
-	my ($struct) = @_;
 
-	my $form = {};
-	foreach my $method (keys %{$struct}) {
-		$method = lc ($method);
-		if (exists $struct->{$method}{params} && ref $struct->{$method}{params} eq 'ARRAY'){
-			my $html = '';
-			foreach my $param (@{$struct->{$method}{params}}) {
-				my $type = $param->{type};
-				my $name = $param->{name};
-				my $description = $param->{description}||'';
-
-				next unless $name and $type;
-
-				if ($type eq 'text'){
-					my $default = ($param->{default}||'');
-					$html .= '<div class="form-group">';
-					$html .= '<label>'.$description.'</label>'if ($description);
-					$html .= '<input type="text" name="'.$name.'" class="form-control" placeholder="'.$default.'"></input>';
-					$html .= '</div>';
-				}elsif ($type eq 'textarea'){
-					my $rows = ($param->{rows}||20);
-					my $cols = ($param->{cols}||3);
-					my $default = ($param->{default}||'');
-					if (ref $default eq 'HASH'){
-						$default = YAML::Syck::Dump($default);
-					}
-					$html .= '<div class="form-group">';
-					$html .= '<label>'.$description.'</label>';
-					$html .= '<textarea class="form-control" name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'">'.$default.'</textarea>';
-					$html .= '</div>';
-				}elsif ($type eq 'checkbox'){
-					$html .= '<div class="form-group">';
-					$html .= "<label >".$description.'</label>'if ($description);
-						foreach my $v (@{$param->{values}}){
-							my $optionName = ''; my $value = '';
-							if (ref $v eq 'ARRAY'){
-								($optionName, $value) = @$v;
-							}else{
-								$optionName = $v; $value = $v;
-							}
-							my $checked='';
-							if(exists $param->{default} and ref $param->{default} eq 'ARRAY'){
-								foreach my $d (@{$param->{default}}){
-									$checked = 'checked="checked"'if ($d eq $value);
-								}
-							}
-							$html .= "<div class='checkbox'><label><input type='checkbox' value='$value' name='$name' $checked />&nbsp;$optionName</label></div>";
-						}
-						$html .= '</div>';
-				}elsif ($type eq 'radio'){
-					$html .= '<div class="form-group">';
-					$html .= "<label>".$description.'</label>'if ($description);
-						foreach my $v (@{$param->{values}}){
-							my $optionName = ''; my $value = '';
-							if (ref $v eq 'ARRAY'){
-								($optionName, $value) = @$v;
-							}else{
-								$optionName = $v; $value = $v;
-							}
-							my $checked='';
-							if(exists $param->{default}){
-								$checked = 'checked="checked"'if ($param->{default} eq $value);
-							}
-							$html .= "<div class='radio'><label><input type='radio' value='$value' name='$name' $checked />$optionName</label></div>";
-						}
-						$html .= '</div>';
-				}elsif ($type eq 'select'){
-					$html .= '<div class="form-group">';
-					$html .= '<label>'.$description.'</label>'if ($description);
-					$html .= '<select class="form-control" name="'.$name.'">';
-					foreach my $v (@{$param->{values}}){
-						my $name = ''; my $id = '';
-						if (ref $v eq 'ARRAY'){
-							($id, $name) = @$v;
-						}else{
-							$name = $v; $id = $v;
-						}
-						my $default = (defined $param->{default} && $id eq $param->{default}) ? 'selected="selected"' : '';
-						$html .= '<option id="'.$id.'" '.$default.'>'.$name.'</option>';
-					}
-					$html .= '</select>';
-					$html .= '</div>';
+sub _decodeQuery {
+	my $str = shift || return {};
+	my %ret;
+	map
+		{
+			my ($a,$b) = split '=', $_, 2;
+			unless ($a =~ /^(?:format|enctype)$/i) {
+				$b =~ s/\+/ /g;
+				$b = decodeURIComponent($b);
+				if (exists $ret{$a}) {
+					$ret{$a} .= "|$b";
+				} else {
+					$ret{$a} = $b;
 				}
 			}
-			$form->{$method} .= $html;
-		}elsif(exists $struct->{$method}{default}){
-			my $html = '';
-			$html .= '<textarea class="form-control" name="DATA" rows="20" cols="3">'.$struct->{$method}{default}.'</textarea>';
-			$form->{$method} .= $html;
 		}
-		$form->{$method} .= $defaultForm->{$method};
+		split '&', $str;
+	return {%ret}
+}
+
+sub _paramsToHtml {
+	my ($env, $param, $paramValue) = @_;
+	my $type = $paramValue->{type};
+	my $name = $param;
+	next unless $name and $type;
+
+	my $description = $paramValue->{description};
+	my $html = '';
+	my $query = _decodeQuery($env->{QUERY_STRING});
+	if(exists $query->{$name}){
+		$paramValue->{default} = $query->{$name} =~ /\|/?[split '\|',$query->{$name}]:$query->{$name};
+	}
+	if ($type eq 'text'){
+		my $default = ($paramValue->{default}||'');
+		$html .= '<div class="form-group">';
+		$html .= '<label>'.$description.'</label>'if ($description);
+		$html .= '<input type="text" name="'.$name.'" class="form-control" value="'.$default.'"></input>';
+		$html .= '</div>';
+	}elsif ($type eq 'textarea'){
+		my $rows = ($paramValue->{rows}||20);
+		my $cols = ($paramValue->{cols}||3);
+		my $default = ($paramValue->{default}||'');
+		$html .= '<div class="form-group">';
+		$html .= '<label>'.$description.'</label>';
+		$html .= '<textarea class="form-control" name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'">'.$default.'</textarea>';
+		$html .= '</div>';
+	}elsif ($type eq 'checkbox'){
+		$html .= '<div class="form-group">';
+		$html .= "<label >".$description.'</label>'if ($description);
+			$paramValue->{options} = [$paramValue->{options}] if ( ref $paramValue->{options} ne "ARRAY");
+			foreach my $v (@{$paramValue->{options}}){
+				my $optionName = ''; my $value = '';
+				if (ref $v eq 'ARRAY'){
+					($optionName, $value) = @$v;
+				}else{
+					$optionName = $v; $value = $v;
+				}
+				my $checked='';
+				if(exists $paramValue->{default}){
+					if(ref $paramValue->{default} eq 'ARRAY'){
+						foreach my $d (@{$paramValue->{default}}){
+							$checked = 'checked="checked"'if ($d eq $value);
+						}
+					}else{
+						$checked = 'checked="checked"'if ($paramValue->{default} eq $value);
+					}
+				}
+				$html .= "<div class='checkbox'><label><input type='checkbox' value='$value' name='$name' $checked />&nbsp;$optionName</label></div>";
+			}
+			$html .= '</div>';
+	}elsif ($type eq 'radio'){
+		$html .= '<div class="form-group">';
+		$html .= "<label>".$description.'</label>'if ($description);
+			foreach my $v (@{$paramValue->{options}}){
+				my $optionName = ''; my $value = '';
+				if (ref $v eq 'ARRAY'){
+					($optionName, $value) = @$v;
+				}else{
+					$optionName = $v; $value = $v;
+				}
+				my $checked='';
+				if(exists $paramValue->{default}){
+					if(ref $paramValue->{default} eq 'ARRAY'){
+						foreach my $d (@{$paramValue->{default}}){
+							$checked = 'checked="checked"'if ($d eq $value);
+						}
+					}else{
+						$checked = 'checked="checked"'if ($paramValue->{default} eq $value);
+					}
+				}
+				$html .= "<div class='radio'><label><input type='radio' value='$value' name='$name' $checked />$optionName</label></div>";
+			}
+			$html .= '</div>';
+	}elsif ($type eq 'select'){
+		$html .= '<div class="form-group">';
+		$html .= '<label>'.$description.'</label>'if ($description);
+		$html .= '<select class="form-control" name="'.$name.'">';
+		foreach my $v (@{$paramValue->{options}}){
+			my $name = ''; my $id = '';
+			if (ref $v eq 'ARRAY'){
+				($id, $name) = @$v;
+			}else{
+				$name = $v; $id = $v;
+			}
+			my $default = (defined $paramValue->{default} && $id eq $paramValue->{default}) ? 'selected="selected"' : '';
+			$html .= '<option id="'.$id.'" '.$default.'>'.$name.'</option>';
+		}
+		$html .= '</select>';
+		$html .= '</div>';
+	}elsif ($type eq 'hidden'){
+		$html .= "  <input type='hidden' name='$param' value='$paramValue->{default}' />";
+		
+	}
+	return $html;
+}
+
+sub _extFormToHtml {
+	my ($env, $struct, @methods) = @_;
+	my $form = {};
+	foreach my $defaultMethod (@methods) {
+		my $method = delete $struct->{$defaultMethod};
+		if (defined  $method and exists $method->{params} && ref $method->{params} eq 'HASH'){
+			my $html = '';
+			delete $method->{params}{format};
+			#delete $method->{params}{ENCTYPE};
+			foreach my $param (sort {($method->{params}{$a}{description}||$a) cmp ($method->{params}{$b}{description}||$b) } keys %{$method->{params}}) {
+				$html .= _paramsToHtml($env, $param, $method->{params}{$param});
+			}
+			$form->{$defaultMethod}{html} .= $html;
+		}
+		if(defined  $method and  exists $method->{default}){
+			my $html = '';
+			$html .= '<textarea class="form-control" name="DATA" rows="20" cols="3">'.$method->{default}.'</textarea>';
+			$form->{$defaultMethod}{html} .= $html;
+		}
+		delete $method->{params};
+		$form->{$defaultMethod}{params} = $method;
+		$form->{$defaultMethod}{html} .= $defaultForm->{lc ($method->{method}) } if exists $defaultForm->{ lc($method->{method}) };
+	}
+
+	return $form;
+}
+
+sub _formToHtml {
+	my ($env,$struct, @methods) = @_;
+	my $form = {};
+	foreach my $defaultMethod (@methods) {
+		my $method = delete $struct->{$defaultMethod};
+		if (defined  $method and exists $method->{params} && ref $method->{params} eq 'HASH'){
+			my $html = '';
+			foreach my $param (sort {($method->{params}{$a}{description}||$a) cmp ($method->{params}{$b}{description}||$b) } keys %{$method->{params}}) {
+				$html .= _paramsToHtml($env, $param, $method->{params}{$param});
+			}
+			$form->{$defaultMethod} .= $html;
+		}
+		if(defined  $method and  exists $method->{default}){
+			my $html = '';
+			$html .= '<textarea class="form-control" name="DATA" rows="20" cols="3">'.$method->{default}.'</textarea>';
+			$form->{$defaultMethod} .= $html;
+		}
+		
+		$form->{$defaultMethod} .= $defaultForm->{$defaultMethod} if defined $method;
 	}
 
 	return $form;
