@@ -2,6 +2,10 @@ Revision history for Rest-HtmlVis
 
 {{$NEXT}}
 
+0.11  2016-04-09 18:51:09 CEST
+	Added support fir GET_FORM
+	Added error handling
+
 0.10  2016-04-09 00:45:39 CEST
 	Added support for utf8
 	Rewrite Content block
