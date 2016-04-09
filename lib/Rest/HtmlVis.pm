@@ -45,13 +45,16 @@ sub baseurl {
 sub loadVisObject {
 	my ($self, $key, $class) = @_;
 
-	if (_try_load($class)){
+	my ($rtrn, $err) = _try_load($class);
+	if ($rtrn){
 		my $vis = $class->new($self->baseurl);
 		my $order = $vis->getOrder;
 		push(@{$self->{htmlVis}{$order}}, {
 			key => $key,
 			object => $vis
 		}) if $vis->isa('Rest::HtmlVis::Key');
+	}else{
+		print STDERR "ERROR: to load vis class".$err."\n";
 	}
 }
 
@@ -100,7 +103,7 @@ sub _try_load {
 
 	return 0 unless $mod;
 	return 1 if ($mod->can("html")); # because of local class in psgi
-	eval("use $mod; 1") ? return 1 : return 0;
+	eval("use $mod; 1") ? return 1 : return (0, $@);
 }
 
 1;
