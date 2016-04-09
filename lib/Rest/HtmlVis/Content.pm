@@ -9,6 +9,9 @@ use parent qw( Rest::HtmlVis::Key );
 use Plack::Request;
 use YAML::Syck;
 use URI::Escape::XS qw/decodeURIComponent/;
+use Encode;
+
+$YAML::Syck::ImplicitUnicode = 1;
 
 =head1 NAME
 
@@ -99,7 +102,7 @@ sub head {
 		});
 	function sendPut(methodType,url,jsvar){
 		var selected = \$( "select[name*='enctype'] option:selected" ).val();
-		var enctype = typeof selected == 'undefind'?'application/json':'application/x-www-form-urlencoded';
+		var enctype = typeof selected == 'undefined'?'application/json':'application/x-www-form-urlencoded';
 		\$.ajax({
 			type: methodType,
 			url: url,
@@ -129,7 +132,7 @@ sub html {
 	my ($self) = @_;
 	my $struct = $self->getStruct;
 	my $env = $self->getEnv;
-	
+
 	### Links
 	my $links = '';
 	if (ref $struct eq 'HASH' && exists $struct->{link} && ref $struct->{link} eq 'ARRAY'){
@@ -140,7 +143,8 @@ sub html {
 	}
 
 	### Remove form content
-	my $formStruct = delete $struct->{form} if (ref $struct eq 'HASH' && exists $struct->{form} && ref $struct->{form} eq 'HASH');
+	my $formStruct; # Set undef
+	$formStruct = delete $struct->{form} if (ref $struct eq 'HASH' && exists $struct->{form} && ref $struct->{form} eq 'HASH');
 
 	### Content
 	my $content = '';
@@ -151,6 +155,12 @@ sub html {
 		local $Data::Dumper::Sortkeys=1;
 
 		$content = Dump($struct);
+	}
+
+	if( !$formStruct && exists $env->{'REST.class'} && $env->{'REST.class'}->can('GET_FORM') ){
+		my $req = Plack::Request->new($env);
+ 		my $par = $req->parameters;
+		$formStruct = $env->{'REST.class'}->GET_FORM($env, $content, $par);
 	}
 
 	### Form
@@ -288,7 +298,7 @@ sub _decodeQuery {
 			my ($a,$b) = split '=', $_, 2;
 			unless ($a =~ /^(?:format|enctype)$/i) {
 				$b =~ s/\+/ /g;
-				$b = decodeURIComponent($b);
+				$b = Encode::decode_utf8(decodeURIComponent($b));
 				if (exists $ret{$a}) {
 					$ret{$a} .= "|$b";
 				} else {
@@ -306,7 +316,7 @@ sub _paramsToHtml {
 	my $name = $param;
 	next unless $name and $type;
 
-	my $description = $paramValue->{description};
+	my $description = $paramValue->{description}||'';
 	my $html = '';
 	my $query = _decodeQuery($env->{QUERY_STRING});
 	if(exists $query->{$name}){
@@ -314,21 +324,27 @@ sub _paramsToHtml {
 	}
 	if ($type eq 'text'){
 		my $default = ($paramValue->{default}||'');
+		if (ref $default eq 'HASH' || ref $default eq 'ARRAY'){
+			$default = YAML::Syck::Dump($default);
+		}
 		$html .= '<div class="form-group">';
-		$html .= '<label>'.$description.'</label>'if ($description);
+		$html .= '<label>'.$description.'</label>' if ($description);
 		$html .= '<input type="text" name="'.$name.'" class="form-control" value="'.$default.'"></input>';
 		$html .= '</div>';
 	}elsif ($type eq 'textarea'){
 		my $rows = ($paramValue->{rows}||20);
 		my $cols = ($paramValue->{cols}||3);
 		my $default = ($paramValue->{default}||'');
+		if (ref $default eq 'HASH' || ref $default eq 'ARRAY'){
+			$default = YAML::Syck::Dump($default);
+		}
 		$html .= '<div class="form-group">';
-		$html .= '<label>'.$description.'</label>';
+		$html .= '<label>'.$description.'</label>' if ($description);
 		$html .= '<textarea class="form-control" name="'.$name.'" rows="'.$rows.'" cols="'.$cols.'">'.$default.'</textarea>';
 		$html .= '</div>';
 	}elsif ($type eq 'checkbox'){
 		$html .= '<div class="form-group">';
-		$html .= "<label >".$description.'</label>'if ($description);
+		$html .= "<label >".$description.'</label>' if ($description);
 			$paramValue->{options} = [$paramValue->{options}] if ( ref $paramValue->{options} ne "ARRAY");
 			foreach my $v (@{$paramValue->{options}}){
 				my $optionName = ''; my $value = '';
@@ -352,7 +368,7 @@ sub _paramsToHtml {
 			$html .= '</div>';
 	}elsif ($type eq 'radio'){
 		$html .= '<div class="form-group">';
-		$html .= "<label>".$description.'</label>'if ($description);
+		$html .= "<label>".$description.'</label>' if ($description);
 			foreach my $v (@{$paramValue->{options}}){
 				my $optionName = ''; my $value = '';
 				if (ref $v eq 'ARRAY'){
@@ -375,7 +391,7 @@ sub _paramsToHtml {
 			$html .= '</div>';
 	}elsif ($type eq 'select'){
 		$html .= '<div class="form-group">';
-		$html .= '<label>'.$description.'</label>'if ($description);
+		$html .= '<label>'.$description.'</label>' if ($description);
 		$html .= '<select class="form-control" name="'.$name.'">';
 		foreach my $v (@{$paramValue->{options}}){
 			my $name = ''; my $id = '';
