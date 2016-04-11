@@ -207,6 +207,9 @@ sub html {
 					}
 				  $ret .= "</div><hr />";
 			}
+	my $header = $self->getHeader;
+	my $duration = sprintf ( "%.3f",$header->{'X-Runtime'} *1000);
+
   $ret .= " 			<ul class=\"links\">
 				$links
 			</ul>
@@ -215,6 +218,7 @@ sub html {
 			<pre class=\"prettyprint lang-yaml\">
 $content
 			</pre>
+			<div class=\"row align-right text-muted duration\"> <small>Duration: $duration ms </small></div>  
 		</div>
 		<div class=\"col-lg-3\" role=\"tabpanel\">
 

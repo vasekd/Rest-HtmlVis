@@ -9,6 +9,7 @@ our $VERSION = '0.11'; # Set automatically by milla
 my $based = {
 	'default.base' => 'Rest::HtmlVis::Base',
 	'default.content' => 'Rest::HtmlVis::Content',
+	'default.footer' => 'Rest::HtmlVis::Footer',
 };
 
 sub new {
@@ -59,12 +60,13 @@ sub loadVisObject {
 }
 
 sub html {
-	my ($self, $struct, $env) = @_;
+	my ($self, $struct, $env, $header) = @_;
 
 	### manage keys
 	my $head_parts = '';
 	my $onload_parts = '';
 	my $html_parts = '';
+	my $footer_parts = '';
 
 	my $rowBlocks = 0; # count number of blocks in row
 
@@ -74,6 +76,7 @@ sub html {
 
 			my $vis = $obj->{object};
 			next unless $vis->setStruct($obj->{key}, $struct, $env);
+			$vis->setHeader($header);
 
 			my $head = $vis->head($self->{local});
 			$head_parts .= $head if $head;
@@ -91,6 +94,8 @@ sub html {
 				$html_parts .= '</div>' if $newRow;
 				$rowBlocks = 0 if $newRow;
 			}
+			my $footer = $vis->footer($self->{local});
+			$head_parts .= $footer if $footer;
 		}
 	}
 

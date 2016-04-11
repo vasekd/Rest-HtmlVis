@@ -58,6 +58,25 @@ sub baseurl {
 	return $_[0]->{baseurl};
 }
 
+=head2 setHeader
+
+=cut
+
+sub setHeader{
+	my ($self, $header) = @_;
+	my %hash = @{$header};
+	$self->{header} = \%hash;
+}
+
+=head2 getHeader
+
+=cut
+
+sub getHeader {
+	my ($self) = @_;
+	return $self->{header};
+}
+
 =head2 setStruct
 
 =cut
@@ -141,6 +160,19 @@ Default empty.
 =cut
 
 sub head {
+	my ($self) = @_;
+	return;
+}
+
+=head2 head
+
+Return footer of page as HTML string.
+
+Default empty.
+
+=cut
+
+sub footer {
 	my ($self) = @_;
 	return;
 }
