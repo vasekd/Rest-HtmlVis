@@ -260,7 +260,7 @@ END
 my $defaultForm = {
 	get => 	"<label class=\"col-lg-4 control-label\">Get as</label> 
 	<select name=\"format\" class=\"form-control\">
-		<option selected=\"selected\">text/html</option>
+	  <option selected=\"selected\">text/html</option>
 	  <option>application/json</option>
 	  <option>text\/yaml</option>
 	  <option>text/plain</option>
@@ -269,9 +269,9 @@ my $defaultForm = {
 	
 	post => "<label class=\"col-lg-4 control-label\">Get as</label> 
 	<select name=\"format\" class=\"form-control\">
-		<option>text/html</option>
+	  <option selected=\"selected\">text/html</option>
 	  <option>application/json</option>
-	  <option selected=\"selected\">text/yaml</option>
+	  <option>text/yaml</option>
 	  <option>text/plain</option>
 	</select>
 	<label class=\"col-lg-4 control-label\">Post as</label> 
