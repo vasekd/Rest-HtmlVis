@@ -54,7 +54,7 @@ sub loadVisObject {
 			object => $vis
 		}) if $vis->isa('Rest::HtmlVis::Key');
 	}else{
-		print STDERR "ERROR: to load vis class".$err."\n";
+		print STDERR "ERROR: to load vis class: ".$err."\n";
 	}
 }
 
@@ -101,7 +101,7 @@ sub html {
 sub _try_load {
 	my $mod = shift;
 
-	return 0 unless $mod;
+	return +(0, "Not defined module.") unless $mod;
 	return 1 if ($mod->can("html")); # because of local class in psgi
 	eval("use $mod; 1") ? return 1 : return (0, $@);
 }
