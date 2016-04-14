@@ -16,7 +16,7 @@ Version 0.01
 
 =cut
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 sub setStruct {
 	my ($self, $key, $struct, $env) = @_;
