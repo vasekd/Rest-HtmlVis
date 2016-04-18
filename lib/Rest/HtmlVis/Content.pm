@@ -121,6 +121,15 @@ sub head {
 		});return false;
 	}
 	</script>
+	<style>
+		.pre-wrap  {
+			white-space: pre-wrap;       /* css-3 */
+			white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+			white-space: -pre-wrap;      /* Opera 4-6 */
+			white-space: -o-pre-wrap;    /* Opera 7 */
+			word-wrap: break-word;       /* Internet Explorer 5.5+ */
+		}
+	</style>
 END
 }
 
@@ -215,7 +224,7 @@ sub html {
 			</ul>
 		</div>
 		<div class=\"col-lg-6\">
-			<pre class=\"prettyprint lang-yaml\">
+			<pre class=\"prettyprint lang-yaml pre-wrap\">
 $content
 			</pre>
 			<div class=\"row align-right text-muted duration\"> <small>Duration: $duration ms </small></div>  
